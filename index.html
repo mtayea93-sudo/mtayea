@@ -441,7 +441,7 @@
 
 <footer>
   <div class="container foot-inner">
-    <span>© 2026 <span class="sig">Mohamed Tayea</span> — كل الحقوق محفوظة</span>
+    <span>© 2026 <span class="sig">Mohamed Tayea</span> — كل الحقوق محفوظة · <a href="admin.html" style="opacity:.55;font-size:.85em">لوحة التحكم</a></span>
     <span>صُنع بشغف وبصمة <span class="sig">m.tayea</span></span>
   </div>
 </footer>
@@ -509,6 +509,64 @@
     yPercent: -6, ease: 'none',
     scrollTrigger: { trigger: document.body, start: 'top top', end: 'max', scrub: 1.4 }
   });
+</script>
+<!-- زرار راسلني + نافذة وسائل التواصل -->
+<style>
+  #mtContactBtn{position:fixed;bottom:22px;right:22px;z-index:9999;width:56px;height:56px;border-radius:50%;border:none;background:var(--accent,#ff008c);color:#fff;cursor:pointer;display:grid;place-items:center;box-shadow:0 10px 30px rgba(255,0,140,.45);transition:transform .3s,box-shadow .3s;font-family:inherit}
+  #mtContactBtn:hover{transform:scale(1.08);box-shadow:0 12px 38px rgba(255,0,140,.6)}
+  #mtContactBtn svg{width:26px;height:26px;fill:#fff}
+  #mtContactPop{position:fixed;bottom:90px;right:22px;z-index:9999;width:min(300px,calc(100vw - 44px));background:#131114;border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px;box-shadow:0 24px 70px rgba(0,0,0,.65);opacity:0;visibility:hidden;transform:translateY(14px);transition:.35s cubic-bezier(.22,1,.36,1);font-family:'Tajawal',sans-serif;direction:rtl}
+  #mtContactPop.open{opacity:1;visibility:visible;transform:translateY(0)}
+  #mtContactPop h4{margin:0 0 4px;font-size:1.05rem;font-weight:800;color:#fff}
+  #mtContactPop small{color:#9a9a9a;display:block;margin-bottom:12px}
+  #mtContactPop a.mtc{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:12px;color:#fff;text-decoration:none;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);margin-bottom:8px;transition:.25s;font-size:.95rem}
+  #mtContactPop a.mtc:hover{border-color:rgba(255,0,140,.55);background:rgba(255,0,140,.08)}
+  #mtContactPop a.mtc svg{width:20px;height:20px;fill:#ff008c;flex-shrink:0}
+  #mtContactPop .mtc-empty{color:#9a9a9a;font-size:.9rem;text-align:center;padding:8px 0}
+  #mtContactPop .mtc-close{position:absolute;top:10px;left:12px;background:none;border:none;color:#9a9a9a;font-size:1.1rem;cursor:pointer;font-family:inherit}
+</style>
+<button id="mtContactBtn" aria-label="راسلني">
+  <svg viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>
+</button>
+<div id="mtContactPop" role="dialog" aria-label="وسائل التواصل">
+  <button class="mtc-close" aria-label="إغلاق">✕</button>
+  <h4>راسلني 🖤</h4>
+  <small>اختار الطريقة اللي تريحك</small>
+  <div class="mtc-list" style="position:relative">
+    <div class="mtc-empty">جاري التحميل…</div>
+  </div>
+</div>
+<script>
+(function(){
+  var ICONS={
+    whatsapp:'<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.6-1.2.1-.2 0-.4 0-.5l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.9.9-1.1 2.2-.2 3.9a11.6 11.6 0 0 0 4.5 4.2c1.7.8 2.4.9 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.4-.3z"/></svg>',
+    facebook:'<svg viewBox="0 0 24 24"><path d="M13.5 21v-8h2.7l.4-3.2h-3.1V7.7c0-.9.3-1.6 1.7-1.6h1.5V3.2c-.3 0-1.2-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8v2.9H7.8V13h2.7v8h3z"/></svg>',
+    phone:'<svg viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.3 0 .7-.2 1l-2.3 2.2z"/></svg>',
+    link:'<svg viewBox="0 0 24 24"><path d="M3.9 12a3.1 3.1 0 0 1 3.1-3.1h4V7H7a5 5 0 0 0 0 10h4v-1.9H7A3.1 3.1 0 0 1 3.9 12zM8 13h8v-2H8v2zm9-6h-4v1.9h4a3.1 3.1 0 0 1 0 6.2h-4V17h4a5 5 0 0 0 0-10z"/></svg>'
+  };
+  var DEFAULTS={contacts:[
+    {type:'whatsapp',label:'واتساب',value:'201000000000'},
+    {type:'facebook',label:'فيسبوك',value:'https://facebook.com/mtayea93'},
+    {type:'phone',label:'اتصال مباشر',value:'+201000000000'}
+  ]};
+  function hrefFor(c){
+    if(c.type==='phone') return 'tel:'+String(c.value).replace(/[^+\d]/g,'');
+    if(c.type==='whatsapp') return 'https://wa.me/'+String(c.value).replace(/\D/g,'');
+    return c.value;
+  }
+  function render(list){
+    var box=document.querySelector('#mtContactPop .mtc-list');
+    if(!list.length){box.innerHTML='<div class="mtc-empty">تواصل معايا من صفحة <a href="admin.html" style="color:#ff008c">اللوحة</a> 😉</div>';return;}
+    box.innerHTML=list.map(function(c){
+      return '<a class="mtc" href="'+hrefFor(c)+'" target="_blank" rel="noopener">'+(ICONS[c.type]||ICONS.link)+'<span>'+c.label+'</span></a>';
+    }).join('');
+  }
+  fetch('data/contacts.json').then(function(r){return r.json();}).then(function(j){render(j.contacts||[]);}).catch(function(){render(DEFAULTS.contacts);});
+  var btn=document.getElementById('mtContactBtn'),pop=document.getElementById('mtContactPop');
+  btn.onclick=function(e){e.stopPropagation();pop.classList.toggle('open');};
+  pop.querySelector('.mtc-close').onclick=function(){pop.classList.remove('open');};
+  document.addEventListener('click',function(e){if(!pop.contains(e.target)&&e.target!==btn)pop.classList.remove('open');});
+})();
 </script>
 <script src="signature/mtayea-signature.js"></script>
 </body>

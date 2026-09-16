@@ -156,6 +156,37 @@
       </div>
     </section>
 
+    <section class="section">
+      <h3>وسائل التواصل (زرار «راسلني»)</h3>
+      <p class="hint">دي اللي بتظهر لما حد يدوس على زرار «راسلني» في موقعك. ضيف وأعدّل براحتك — للواتساب اكتب الرقم بالكود الدولي من غير + أو مسافات، وللفيسبوك حط اللينك الكامل.</p>
+      <div class="box">
+        <form class="custom" id="contactForm">
+          <select id="kType" required style="padding:13px 16px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:#fff;font-family:inherit;font-size:.95rem">
+            <option value="whatsapp">واتساب</option>
+            <option value="facebook">فيسبوك</option>
+            <option value="phone">تليفون (اتصال)</option>
+            <option value="link">لينك عام</option>
+          </select>
+          <input type="text" id="kLabel" placeholder="الاسم اللي يظهر (مثال: واتساب)" required>
+          <input type="text" id="kValue" class="full" placeholder="الرقم أو اللينك" required dir="ltr" style="text-align:left">
+          <button type="submit" class="full">＋ إضافة وسيلة تواصل</button>
+        </form>
+        <div id="contactList" style="margin-top:16px"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h3>الأمان (تغيير كلمة السر)</h3>
+      <p class="hint">كلمة السر بتتحفظ على الموقع نفسه — محتاج توكن عشان تقدر تغيّرها.</p>
+      <div class="box">
+        <form class="custom" id="pwForm">
+          <input type="password" id="curPw" placeholder="كلمة السر الحالية" required>
+          <input type="password" id="newPw" placeholder="كلمة السر الجديدة (٦ حروف على الأقل)" required minlength="6">
+          <button type="submit" class="full">🔒 تغيير كلمة السر</button>
+        </form>
+      </div>
+    </section>
+
     <footer>لوحة تحكم m_tayea — © 2026 Mohamed Tayea</footer>
   </div>
 </div>
@@ -163,10 +194,14 @@
 <div class="toast" id="toast"></div>
 
 <script>
-/* ====== بيانات الدخول — الباسورد الافتراضي: tayea2026 (اطلب مني لو عايز تغيره) ====== */
-var PW_HASH = '48da05c5ef6c604d9f05bb7310ea02018a9591ce8a199b4401a83cd53ef29957';
-var USER = 'mtayea93-sudo', REPO = 'mtayea', FILE = 'data/projects.json';
+/* ====== بيانات الدخول — الباسورد الافتراضي: mory-2026 (غيّره من قسم الأمان) ====== */
+var DEFAULT_HASH = '516db0610aa8590c9470562c993adace620aceb9ddcf5175f1181be27ff01f03';
+var PW_HASH = DEFAULT_HASH;
+var USER = 'mtayea93-sudo', REPO = 'mtayea';
+var FILE = 'data/projects.json', CFILE = 'data/contacts.json', KFILE = 'data/config.json';
 var data = { hidden: [], custom: [] };
+var contacts = [];
+var config = {};
 var reposCache = [];
 
 var $ = function (id) { return document.getElementById(id); };
@@ -206,14 +241,30 @@ if (sessionStorage.getItem('mtayea_auth') === '1') openPanel();
 
 /* ====== تحميل وحفظ البيانات ====== */
 function loadData() {
+  fetch('data/config.json').then(function (r) { return r.json(); }).then(function (j) {
+    config = j;
+    if (j.pw_hash) PW_HASH = j.pw_hash;
+  }).catch(function () {});
   fetch('data/projects.json').then(function (r) { return r.json(); }).then(function (j) {
     data = j; renderRepos(); renderCustom();
   }).catch(function () { renderRepos(); renderCustom(); });
-  fetch('https://api.github.com/users/' + USER + '/repos?per_page=100&sort=pushed')
-    .then(function (r) { return r.json(); })
+  fetch('data/contacts.json').then(function (r) { return r.json(); }).then(function (j) {
+    contacts = j.contacts || []; renderContacts();
+  }).catch(function () { renderContacts(); });
+  var headers = {};
+  if (getToken()) headers['Authorization'] = 'Bearer ' + getToken();
+  fetch('https://api.github.com/users/' + USER + '/repos?per_page=100&sort=pushed', { headers: headers })
+    .then(function (r) {
+      if (r.status === 403) throw new Error('rate');
+      return r.json();
+    })
     .then(function (list) {
-      reposCache = list.filter(function (r) { return r.name !== REPO && (r.has_pages || r.homepage); });
+      reposCache = (list || []).filter(function (r) { return r.name !== REPO && (r.has_pages || r.homepage); });
       renderRepos();
+    })
+    .catch(function (e) {
+      var box = $('repoList');
+      if (box) box.innerHTML = '<div style="color:var(--txt2)">⏳ حد الاستخدام المؤقت خلص — احفظ التوكن فوق ودوس تحديث، أو استنى ساعة.</div>';
     });
 }
 
@@ -257,6 +308,54 @@ $('customForm').onsubmit = function (e) {
   toast('اتضاف — متنساش تضغط حفظ', true);
 };
 
+/* ====== وسائل التواصل ====== */
+var TYPE_NAMES = { whatsapp: 'واتساب', facebook: 'فيسبوك', phone: 'تليفون', link: 'لينك' };
+function renderContacts() {
+  var box = $('contactList');
+  if (!contacts.length) { box.innerHTML = '<div style="color:var(--txt2);font-size:.9rem">مفيش وسائل تواصل لسه — ضيف أول واحدة 👆</div>'; return; }
+  box.innerHTML = contacts.map(function (c, i) {
+    return '<div class="custom-item"><span class="name">' + esc(c.label) + ' <small style="color:var(--txt2)">(' + (TYPE_NAMES[c.type] || c.type) + ')</small><br><span class="url">' + esc(c.value) + '</span></span>' +
+      '<button class="del" data-ci="' + i + '">حذف</button></div>';
+  }).join('');
+  box.querySelectorAll('.del').forEach(function (b) {
+    b.onclick = function () { contacts.splice(+b.dataset.ci, 1); renderContacts(); toast('اتحذف — متنساش تضغط حفظ'); };
+  });
+}
+$('contactForm').onsubmit = function (e) {
+  e.preventDefault();
+  contacts.push({ type: $('kType').value, label: $('kLabel').value.trim(), value: $('kValue').value.trim() });
+  $('contactForm').reset(); renderContacts();
+  toast('اتضاف — متنساش تضغط حفظ', true);
+};
+
+/* ====== تغيير كلمة السر ====== */
+$('pwForm').onsubmit = async function (e) {
+  e.preventDefault();
+  if (!getToken()) { toast('لازم تحفظ التوكن الأول'); return; }
+  var cur = await sha($('curPw').value);
+  if (cur !== PW_HASH) { toast('كلمة السر الحالية غلط'); return; }
+  var npw = $('newPw').value;
+  if (npw.length < 6) { toast('كلمة السر لازم ٦ حروف على الأقل'); return; }
+  config.pw_hash = await sha(npw);
+  PW_HASH = config.pw_hash;
+  $('pwForm').reset();
+  toast('اتغيرت — اضغط «حفظ كل التعديلات» عشان تثبت', true);
+};
+
+/* ====== الحفظ على GitHub ====== */
+function saveFile(tok, path, obj) {
+  var content = btoa(unescape(encodeURIComponent(JSON.stringify(obj, null, 2) + '\n')));
+  return fetch('https://api.github.com/repos/' + USER + '/' + REPO + '/contents/' + path, {
+    headers: { 'Authorization': 'Bearer ' + tok, 'Accept': 'application/vnd.github+json' }
+  }).then(function (r) { return r.json(); }).then(function (file) {
+    return fetch('https://api.github.com/repos/' + USER + '/' + REPO + '/contents/' + path, {
+      method: 'PUT',
+      headers: { 'Authorization': 'Bearer ' + tok, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'تحديث من لوحة التحكم 🤖', content: content, sha: file.sha })
+    });
+  });
+}
+
 $('saveToken').onclick = function () {
   localStorage.setItem('mtayea_token', $('token').value.trim());
   pushState(); toast('التوكن اتحفظ في متصفحك', true);
@@ -272,20 +371,15 @@ function pushState() {
 $('pushBtn').onclick = function () {
   var tok = getToken();
   if (!tok) { toast('لازم تحفظ التوكن الأول'); return; }
-  var content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2) + '\n')));
   toast('جاري الحفظ على GitHub…', true);
-  fetch('https://api.github.com/repos/' + USER + '/' + REPO + '/contents/' + FILE, {
-    headers: { 'Authorization': 'Bearer ' + tok, 'Accept': 'application/vnd.github+json' }
-  }).then(function (r) { return r.json(); }).then(function (file) {
-    return fetch('https://api.github.com/repos/' + USER + '/' + REPO + '/contents/' + FILE, {
-      method: 'PUT',
-      headers: { 'Authorization': 'Bearer ' + tok, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: 'تحديث من لوحة التحكم 🤖', content: content, sha: file.sha })
-    });
-  }).then(function (r) {
-    if (r.ok) toast('✅ اتحفظ! الصفحة هتتحدث في أقل من دقيقة', true);
-    else toast('فيه مشكلة: ' + r.status + ' — اتأكد من صلاحية التوكن');
-  }).catch(function () { toast('مشكلة في الاتصال — جرب تاني'); });
+  saveFile(tok, FILE, data)
+    .then(function () { return saveFile(tok, CFILE, { contacts: contacts }); })
+    .then(function () { return config.pw_hash ? saveFile(tok, KFILE, config) : null; })
+    .then(function (r) {
+      if (!r || r.ok) toast('✅ اتحفظ كله! الموقع هيتحدث في أقل من دقيقة', true);
+      else toast('فيه مشكلة: ' + r.status + ' — اتأكد من صلاحية التوكن');
+    })
+    .catch(function () { toast('مشكلة في الاتصال — جرب تاني'); });
 };
 </script>
 </body>
