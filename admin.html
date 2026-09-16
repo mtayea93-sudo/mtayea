@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة التحكم — m_tayea</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0a0c; --surface:rgba(255,255,255,.04); --line:rgba(255,255,255,.10);
+    --txt:#fff; --txt2:#bdbdbd; --accent:#ff008c; --ok:#4ade80; --r:20px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--txt);font-family:'Tajawal','Hanken Grotesk',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--accent);color:#fff}
+  a{color:inherit;text-decoration:none}
+  .latin{font-family:'Hanken Grotesk',sans-serif}
+  .container{width:min(1100px,92vw);margin-inline:auto;position:relative;z-index:1}
+  .watermark{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .watermark span{font-family:'Hanken Grotesk',sans-serif;font-weight:800;font-size:min(22vw,18rem);letter-spacing:-.03em;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.04);user-select:none}
+
+  /* ===== شاشة الدخول ===== */
+  #gate{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:var(--bg);transition:opacity .6s,visibility .6s}
+  #gate.open{opacity:0;visibility:hidden}
+  .gate-box{width:min(400px,90vw);border:1px solid var(--line);background:var(--surface);border-radius:28px;padding:46px 38px;text-align:center;backdrop-filter:blur(10px)}
+  .gate-box .lock{width:64px;height:64px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;margin:0 auto 22px;background:rgba(255,0,140,.08)}
+  .gate-box .lock svg{width:26px;height:26px;stroke:var(--accent)}
+  .gate-box h1{font-size:1.5rem;font-weight:900;margin-bottom:6px}
+  .gate-box p{color:var(--txt2);font-size:.9rem;margin-bottom:26px}
+  .gate-box input{width:100%;padding:15px 18px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:#fff;font-family:inherit;font-size:1rem;text-align:center;letter-spacing:.1em;outline:none;transition:border-color .3s}
+  .gate-box input:focus{border-color:var(--accent)}
+  .gate-box button{width:100%;margin-top:14px;padding:14px;border:none;border-radius:14px;background:var(--accent);color:#fff;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;transition:.3s}
+  .gate-box button:hover{box-shadow:0 8px 30px rgba(255,0,140,.4)}
+  .gate-err{color:#f87171;font-size:.85rem;margin-top:12px;min-height:1.2em}
+
+  /* ===== اللوحة ===== */
+  #panel{display:none}
+  #panel.on{display:block}
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(11,10,12,.6);border-bottom:1px solid var(--line)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 0}
+  .logo{font-family:'Hanken Grotesk',sans-serif;font-weight:800;font-size:1.25rem;display:flex;align-items:center;gap:8px}
+  .logo i{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 14px var(--accent)}
+  .exit{font-size:.85rem;color:var(--txt2);border:1px solid var(--line);padding:8px 18px;border-radius:999px;background:var(--surface);cursor:pointer;font-family:inherit;transition:.3s}
+  .exit:hover{color:#f87171;border-color:#f8717188}
+
+  header{padding:60px 0 10px}
+  header h2{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:900}
+  header p{color:var(--txt2);margin-top:10px}
+
+  .section{margin:36px 0}
+  .section>h3{font-size:1.25rem;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+  .section>h3::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--accent)}
+  .section>.hint{color:var(--txt2);font-size:.9rem;margin-bottom:18px;line-height:1.9}
+
+  .box{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:24px}
+  .repo-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 4px;border-bottom:1px solid rgba(255,255,255,.06)}
+  .repo-row:last-child{border-bottom:none}
+  .repo-row .name{font-family:'Hanken Grotesk',sans-serif;font-weight:700;direction:ltr}
+  .repo-row .name small{display:block;color:var(--txt2);font-weight:400;font-family:'Tajawal',sans-serif;margin-top:3px}
+  .switch{position:relative;width:48px;height:26px;min-width:48px;cursor:pointer}
+  .switch input{opacity:0;width:0;height:0}
+  .slider{position:absolute;inset:0;border-radius:999px;background:rgba(255,255,255,.12);transition:.3s}
+  .slider::before{content:'';position:absolute;width:20px;height:20px;border-radius:50%;background:#fff;top:3px;right:3px;transition:.3s}
+  .switch input:checked + .slider{background:var(--accent)}
+  .switch input:checked + .slider::before{transform:translateX(-22px)}
+  .lbl{font-size:.8rem;color:var(--txt2);min-width:52px;text-align:center}
+
+  form.custom{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  form.custom input, form.custom textarea{padding:13px 16px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:#fff;font-family:inherit;font-size:.95rem;outline:none;transition:border-color .3s;resize:vertical}
+  form.custom input:focus, form.custom textarea:focus{border-color:var(--accent)}
+  form.custom .full{grid-column:1/-1}
+  form.custom button{padding:14px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;transition:.3s}
+  form.custom button:hover{box-shadow:0 8px 26px rgba(255,0,140,.4)}
+  @media(max-width:640px){form.custom{grid-template-columns:1fr}}
+
+  .token-row{display:flex;gap:12px;flex-wrap:wrap}
+  .token-row input{flex:1;min-width:260px;padding:13px 16px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:#fff;font-family:'Hanken Grotesk',monospace;font-size:.85rem;direction:ltr;outline:none}
+  .token-row input:focus{border-color:var(--accent)}
+  .btn{padding:13px 26px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:#fff;font-family:inherit;font-weight:700;font-size:.95rem;cursor:pointer;transition:.3s}
+  .btn:hover{border-color:var(--accent)}
+  .btn.primary{background:var(--accent);border-color:var(--accent)}
+  .btn.primary:hover{box-shadow:0 8px 26px rgba(255,0,140,.4)}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+
+  .toast{position:fixed;bottom:26px;right:50%;transform:translate(50%,100px);background:#131214;border:1px solid var(--line);border-radius:14px;padding:14px 26px;font-weight:700;z-index:200;transition:transform .45s cubic-bezier(.22,1,.36,1);box-shadow:0 16px 50px rgba(0,0,0,.6)}
+  .toast.show{transform:translate(50%,0)}
+  .toast.ok{border-color:#4ade8088}.toast.ok::before{content:'✓ ';color:var(--ok)}
+  .toast.err{border-color:#f8717188}.toast.err::before{content:'✕ ';color:#f87171}
+
+  .custom-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 4px;border-bottom:1px solid rgba(255,255,255,.06)}
+  .custom-item .name{font-weight:700}
+  .custom-item .url{color:var(--txt2);font-size:.8rem;font-family:'Hanken Grotesk',sans-serif;direction:ltr}
+  .del{background:none;border:none;color:#f87171;cursor:pointer;font-family:inherit;font-size:.85rem;font-weight:700}
+  footer{padding:40px 0 60px;color:var(--txt2);font-size:.85rem;text-align:center;position:relative;z-index:1}
+</style>
+</head>
+<body>
+
+<div class="watermark" aria-hidden="true"><span>m.tayea</span></div>
+
+<!-- شاشة الدخول -->
+<div id="gate">
+  <div class="gate-box">
+    <div class="lock"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+    <h1>لوحة التحكم</h1>
+    <p>منطقة خاصة بـ m_tayea — مش للزوار</p>
+    <input type="password" id="pw" placeholder="••••••••" autocomplete="off">
+    <button id="login">دخول</button>
+    <div class="gate-err" id="err"></div>
+  </div>
+</div>
+
+<!-- اللوحة -->
+<div id="panel">
+  <nav><div class="container nav-inner">
+    <span class="logo"><i></i>m.tayea <small style="color:var(--txt2);font-family:Tajawal;font-weight:400">· لوحة التحكم</small></span>
+    <button class="exit" id="logout">خروج ←</button>
+  </div></nav>
+
+  <header class="container">
+    <h2>أهلاً يا طايع 👑</h2>
+    <p>تحكم في اللي يظهر للناس في صفحة المشاريع — إخفاء، إضافة، وحفظ مباشر على الموقع.</p>
+  </header>
+
+  <div class="container">
+    <section class="section">
+      <h3>توكن GitHub (للحفظ المباشر)</h3>
+      <p class="hint">محفوظ في متصفحك بس، ومبيتحفظش في أي سيرفر. اعمل توكن من github.com/settings/personal-access-tokens جديد بصلاحية <b style="color:#fff">Contents: Read and write</b> على ريبو <b style="color:#fff">mtayea</b> بس.</p>
+      <div class="box token-row">
+        <input type="password" id="token" placeholder="github_pat_...">
+        <button class="btn" id="saveToken">حفظ التوكن</button>
+        <button class="btn primary" id="pushBtn" disabled>💾 حفظ كل التعديلات على الموقع</button>
+      </div>
+    </section>
+
+    <section class="section">
+      <h3>مشاريع GitHub (إظهار / إخفاء)</h3>
+      <p class="hint">كل ريبو عليه GitHub Pages بيظهر في صفحة مشاريعك. اقفل المفتاح عشان تخفي أي واحد من العرض العام.</p>
+      <div class="box" id="repoList"><div style="color:var(--txt2)">جاري التحميل…</div></div>
+    </section>
+
+    <section class="section">
+      <h3>مشاريع مخصصة (برّه GitHub)</h3>
+      <p class="hint">ضيف هنا أي موقع مش على ريبوهاتك — مكتبتك على جومرود، تطبيقات Netlify أو Firebase — وهيظهر في صفحة المشاريع جنب الباقي.</p>
+      <div class="box">
+        <form class="custom" id="customForm">
+          <input type="text" id="cName" placeholder="اسم المشروع (مثال: مكتبة موري)" required>
+          <input type="url" id="cUrl" placeholder="https://..." required dir="ltr" style="text-align:left">
+          <textarea id="cDesc" class="full" rows="2" placeholder="وصف مختصر (اختياري)"></textarea>
+          <button type="submit" class="full">＋ إضافة المشروع</button>
+        </form>
+        <div id="customList" style="margin-top:16px"></div>
+      </div>
+    </section>
+
+    <footer>لوحة تحكم m_tayea — © 2026 Mohamed Tayea</footer>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ====== بيانات الدخول — الباسورد الافتراضي: tayea2026 (اطلب مني لو عايز تغيره) ====== */
+var PW_HASH = '48da05c5ef6c604d9f05bb7310ea02018a9591ce8a199b4401a83cd53ef29957';
+var USER = 'mtayea93-sudo', REPO = 'mtayea', FILE = 'data/projects.json';
+var data = { hidden: [], custom: [] };
+var reposCache = [];
+
+var $ = function (id) { return document.getElementById(id); };
+function toast(msg, ok) {
+  var t = $('toast'); t.textContent = msg; t.className = 'toast show ' + (ok ? 'ok' : 'err');
+  setTimeout(function () { t.className = 'toast'; }, 3200);
+}
+function sha(s) {
+  return crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)).then(function (b) {
+    return Array.from(new Uint8Array(b)).map(function (x) { return x.toString(16).padStart(2, '0'); }).join('');
+  });
+}
+function getToken() { return localStorage.getItem('mtayea_token') || ''; }
+
+/* ====== الدخول والخروج ====== */
+async function tryLogin() {
+  var h = await sha($('pw').value);
+  if (h === PW_HASH) {
+    sessionStorage.setItem('mtayea_auth', '1');
+    openPanel();
+  } else { $('err').textContent = 'كلمة السر غلط — حاول تاني'; }
+}
+function openPanel() {
+  $('gate').classList.add('open');
+  $('panel').classList.add('on');
+  $('token').value = getToken();
+  pushState();
+  loadData();
+}
+$('login').onclick = tryLogin;
+$('pw').addEventListener('keydown', function (e) { if (e.key === 'Enter') tryLogin(); });
+$('logout').onclick = function () {
+  sessionStorage.removeItem('mtayea_auth');
+  location.reload();
+};
+if (sessionStorage.getItem('mtayea_auth') === '1') openPanel();
+
+/* ====== تحميل وحفظ البيانات ====== */
+function loadData() {
+  fetch('data/projects.json').then(function (r) { return r.json(); }).then(function (j) {
+    data = j; renderRepos(); renderCustom();
+  }).catch(function () { renderRepos(); renderCustom(); });
+  fetch('https://api.github.com/users/' + USER + '/repos?per_page=100&sort=pushed')
+    .then(function (r) { return r.json(); })
+    .then(function (list) {
+      reposCache = list.filter(function (r) { return r.name !== REPO && (r.has_pages || r.homepage); });
+      renderRepos();
+    });
+}
+
+function renderRepos() {
+  var box = $('repoList');
+  if (!reposCache.length) { box.innerHTML = '<div style="color:var(--txt2)">جاري التحميل…</div>'; return; }
+  box.innerHTML = reposCache.map(function (r) {
+    var hidden = data.hidden.indexOf(r.name) !== -1;
+    return '<div class="repo-row">' +
+      '<span class="name">' + r.name + '<small>' + (r.description || '') + '</small></span>' +
+      '<label class="switch"><input type="checkbox" data-repo="' + r.name + '" ' + (hidden ? '' : 'checked') + '><span class="slider"></span></label>' +
+      '<span class="lbl">' + (hidden ? 'مخفي' : 'ظاهر') + '</span></div>';
+  }).join('');
+  box.querySelectorAll('input[data-repo]').forEach(function (inp) {
+    inp.onchange = function () {
+      var name = inp.dataset.repo;
+      if (inp.checked) data.hidden = data.hidden.filter(function (n) { return n !== name; });
+      else if (data.hidden.indexOf(name) === -1) data.hidden.push(name);
+      renderRepos(); pushState();
+    };
+  });
+}
+
+function renderCustom() {
+  var box = $('customList');
+  if (!data.custom.length) { box.innerHTML = ''; return; }
+  box.innerHTML = data.custom.map(function (c, i) {
+    return '<div class="custom-item"><span class="name">' + esc(c.name) + '<br><span class="url">' + esc(c.url) + '</span></span>' +
+      '<button class="del" data-i="' + i + '">حذف</button></div>';
+  }).join('');
+  box.querySelectorAll('.del').forEach(function (b) {
+    b.onclick = function () { data.custom.splice(+b.dataset.i, 1); renderCustom(); pushState(); };
+  });
+}
+function esc(s) { return String(s || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+$('customForm').onsubmit = function (e) {
+  e.preventDefault();
+  data.custom.push({ name: $('cName').value.trim(), url: $('cUrl').value.trim(), desc: $('cDesc').value.trim() });
+  $('customForm').reset(); renderCustom(); pushState();
+  toast('اتضاف — متنساش تضغط حفظ', true);
+};
+
+$('saveToken').onclick = function () {
+  localStorage.setItem('mtayea_token', $('token').value.trim());
+  pushState(); toast('التوكن اتحفظ في متصفحك', true);
+  if (!reposCache.length) loadData();
+};
+
+function pushState() {
+  var has = !!getToken();
+  $('pushBtn').disabled = !has;
+  $('pushBtn').textContent = has ? '💾 حفظ كل التعديلات على الموقع' : '💾 أدخل التوكن الأول عشان تقدر تحفظ';
+}
+
+$('pushBtn').onclick = function () {
+  var tok = getToken();
+  if (!tok) { toast('لازم تحفظ التوكن الأول'); return; }
+  var content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2) + '\n')));
+  toast('جاري الحفظ على GitHub…', true);
+  fetch('https://api.github.com/repos/' + USER + '/' + REPO + '/contents/' + FILE, {
+    headers: { 'Authorization': 'Bearer ' + tok, 'Accept': 'application/vnd.github+json' }
+  }).then(function (r) { return r.json(); }).then(function (file) {
+    return fetch('https://api.github.com/repos/' + USER + '/' + REPO + '/contents/' + FILE, {
+      method: 'PUT',
+      headers: { 'Authorization': 'Bearer ' + tok, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'تحديث من لوحة التحكم 🤖', content: content, sha: file.sha })
+    });
+  }).then(function (r) {
+    if (r.ok) toast('✅ اتحفظ! الصفحة هتتحدث في أقل من دقيقة', true);
+    else toast('فيه مشكلة: ' + r.status + ' — اتأكد من صلاحية التوكن');
+  }).catch(function () { toast('مشكلة في الاتصال — جرب تاني'); });
+};
+</script>
+</body>
+</html>
