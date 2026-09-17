@@ -85,7 +85,11 @@
   .btn.primary:hover{box-shadow:0 8px 26px rgba(255,0,140,.4)}
   .btn:disabled{opacity:.4;cursor:not-allowed}
 
-  .toast{position:fixed;bottom:26px;right:50%;transform:translate(50%,100px);background:#131214;border:1px solid var(--line);border-radius:14px;padding:14px 26px;font-weight:700;z-index:200;transition:transform .45s cubic-bezier(.22,1,.36,1);box-shadow:0 16px 50px rgba(0,0,0,.6)}
+  .savebar{position:fixed;bottom:0;left:0;right:0;z-index:80;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);background:rgba(11,10,12,.78);border-top:1px solid var(--line);padding:12px 0}
+  .savebar .container{display:flex;justify-content:center}
+  .savebar .pushBtn{min-width:min(340px,80vw)}
+  footer{padding-bottom:110px}
+  .toast{position:fixed;bottom:80px;right:50%;transform:translate(50%,100px);background:#131214;border:1px solid var(--line);border-radius:14px;padding:14px 26px;font-weight:700;z-index:200;transition:transform .45s cubic-bezier(.22,1,.36,1);box-shadow:0 16px 50px rgba(0,0,0,.6)}
   .toast.show{transform:translate(50%,0)}
   .toast.ok{border-color:#4ade8088}.toast.ok::before{content:'✓ ';color:var(--ok)}
   .toast.err{border-color:#f8717188}.toast.err::before{content:'✕ ';color:#f87171}
@@ -132,7 +136,7 @@
       <div class="box token-row">
         <input type="password" id="token" placeholder="github_pat_...">
         <button class="btn" id="saveToken">حفظ التوكن</button>
-        <button class="btn primary" id="pushBtn" disabled>💾 حفظ كل التعديلات على الموقع</button>
+        <button class="btn primary pushBtn" disabled>💾 حفظ كل التعديلات على الموقع</button>
       </div>
     </section>
 
@@ -191,6 +195,10 @@
   </div>
 </div>
 
+<div class="savebar" id="savebar" style="display:none">
+  <div class="container"><button class="btn primary pushBtn" disabled>💾 حفظ كل التعديلات على الموقع</button></div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -227,6 +235,7 @@ async function tryLogin() {
 function openPanel() {
   $('gate').classList.add('open');
   $('panel').classList.add('on');
+  $('savebar').style.display = 'block';
   $('token').value = getToken();
   pushState();
   loadData();
@@ -364,11 +373,14 @@ $('saveToken').onclick = function () {
 
 function pushState() {
   var has = !!getToken();
-  $('pushBtn').disabled = !has;
-  $('pushBtn').textContent = has ? '💾 حفظ كل التعديلات على الموقع' : '💾 أدخل التوكن الأول عشان تقدر تحفظ';
+  document.querySelectorAll('.pushBtn').forEach(function (b) {
+    b.disabled = !has;
+    b.textContent = has ? '💾 حفظ كل التعديلات على الموقع' : '💾 أدخل التوكن الأول عشان تقدر تحفظ';
+  });
 }
 
-$('pushBtn').onclick = function () {
+document.querySelectorAll('.pushBtn').forEach(function (b) { b.onclick = onPush; });
+function onPush() {
   var tok = getToken();
   if (!tok) { toast('لازم تحفظ التوكن الأول'); return; }
   toast('جاري الحفظ على GitHub…', true);
