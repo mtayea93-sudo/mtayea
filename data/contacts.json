@@ -1,7 +1,19 @@
 {
   "contacts": [
-    { "type": "whatsapp", "label": "واتساب", "value": "201000000000" },
-    { "type": "facebook", "label": "فيسبوك", "value": "https://facebook.com/mtayea93" },
-    { "type": "phone", "label": "اتصال مباشر", "value": "+201000000000" }
+    {
+      "type": "whatsapp",
+      "label": "واتساب",
+      "value": "201000000000"
+    },
+    {
+      "type": "facebook",
+      "label": "فيسبوك",
+      "value": "https://facebook.com/mtayea93"
+    },
+    {
+      "type": "phone",
+      "label": "اتصال مباشر",
+      "value": "+201000000000"
+    }
   ]
 }
