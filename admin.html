@@ -11,7 +11,7 @@
 <style>
   :root{
     --bg:#0b0a0c; --surface:rgba(255,255,255,.04); --line:rgba(255,255,255,.10);
-    --txt:#fff; --txt2:#bdbdbd; --accent:#ff008c; --ok:#4ade80; --r:20px;
+    --txt:#fff; --txt2:#bdbdbd; --accent:#d4af37; --ok:#4ade80; --r:20px;
   }
   *{margin:0;padding:0;box-sizing:border-box}
   body{background:var(--bg);color:var(--txt);font-family:'Tajawal','Hanken Grotesk',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
@@ -26,14 +26,14 @@
   #gate{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:var(--bg);transition:opacity .6s,visibility .6s}
   #gate.open{opacity:0;visibility:hidden}
   .gate-box{width:min(400px,90vw);border:1px solid var(--line);background:var(--surface);border-radius:28px;padding:46px 38px;text-align:center;backdrop-filter:blur(10px)}
-  .gate-box .lock{width:64px;height:64px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;margin:0 auto 22px;background:rgba(255,0,140,.08)}
+  .gate-box .lock{width:64px;height:64px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;margin:0 auto 22px;background:rgba(212,175,55,.08)}
   .gate-box .lock svg{width:26px;height:26px;stroke:var(--accent)}
   .gate-box h1{font-size:1.5rem;font-weight:900;margin-bottom:6px}
   .gate-box p{color:var(--txt2);font-size:.9rem;margin-bottom:26px}
   .gate-box input{width:100%;padding:15px 18px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:#fff;font-family:inherit;font-size:1rem;text-align:center;letter-spacing:.1em;outline:none;transition:border-color .3s}
   .gate-box input:focus{border-color:var(--accent)}
   .gate-box button{width:100%;margin-top:14px;padding:14px;border:none;border-radius:14px;background:var(--accent);color:#fff;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;transition:.3s}
-  .gate-box button:hover{box-shadow:0 8px 30px rgba(255,0,140,.4)}
+  .gate-box button:hover{box-shadow:0 8px 30px rgba(212,175,55,.4)}
   .gate-err{color:#f87171;font-size:.85rem;margin-top:12px;min-height:1.2em}
 
   /* ===== اللوحة ===== */
@@ -58,8 +58,10 @@
   .box{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:24px}
   .repo-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 4px;border-bottom:1px solid rgba(255,255,255,.06)}
   .repo-row:last-child{border-bottom:none}
-  .repo-row .name{font-family:'Hanken Grotesk',sans-serif;font-weight:700;direction:ltr}
-  .repo-row .name small{display:block;color:var(--txt2);font-weight:400;font-family:'Tajawal',sans-serif;margin-top:3px}
+  .repo-row .name{font-family:'Hanken Grotesk',sans-serif;font-weight:700;direction:ltr;min-width:110px}
+  .repo-row{flex-wrap:wrap}
+  .repo-desc{flex:1;min-width:200px;padding:9px 13px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.3);color:var(--txt2);font-family:'Tajawal',sans-serif;font-size:.85rem;outline:none;transition:border-color .3s}
+  .repo-desc:focus{border-color:var(--accent);color:#fff}
   .switch{position:relative;width:48px;height:26px;min-width:48px;cursor:pointer}
   .switch input{opacity:0;width:0;height:0}
   .slider{position:absolute;inset:0;border-radius:999px;background:rgba(255,255,255,.12);transition:.3s}
@@ -73,7 +75,7 @@
   form.custom input:focus, form.custom textarea:focus{border-color:var(--accent)}
   form.custom .full{grid-column:1/-1}
   form.custom button{padding:14px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;transition:.3s}
-  form.custom button:hover{box-shadow:0 8px 26px rgba(255,0,140,.4)}
+  form.custom button:hover{box-shadow:0 8px 26px rgba(212,175,55,.4)}
   @media(max-width:640px){form.custom{grid-template-columns:1fr}}
 
   .token-row{display:flex;gap:12px;flex-wrap:wrap}
@@ -82,7 +84,7 @@
   .btn{padding:13px 26px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:#fff;font-family:inherit;font-weight:700;font-size:.95rem;cursor:pointer;transition:.3s}
   .btn:hover{border-color:var(--accent)}
   .btn.primary{background:var(--accent);border-color:var(--accent)}
-  .btn.primary:hover{box-shadow:0 8px 26px rgba(255,0,140,.4)}
+  .btn.primary:hover{box-shadow:0 8px 26px rgba(212,175,55,.4)}
   .btn:disabled{opacity:.4;cursor:not-allowed}
 
   .savebar{position:fixed;bottom:0;left:0;right:0;z-index:80;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);background:rgba(11,10,12,.78);border-top:1px solid var(--line);padding:12px 0}
@@ -207,7 +209,7 @@ var DEFAULT_HASH = '516db0610aa8590c9470562c993adace620aceb9ddcf5175f1181be27ff0
 var PW_HASH = DEFAULT_HASH;
 var USER = 'mtayea93-sudo', REPO = 'mtayea';
 var FILE = 'data/projects.json', CFILE = 'data/contacts.json', KFILE = 'data/config.json';
-var data = { hidden: [], custom: [] };
+var data = { hidden: [], custom: [], descs: {} };
 var contacts = [];
 var config = {};
 var reposCache = [];
@@ -282,11 +284,22 @@ function renderRepos() {
   if (!reposCache.length) { box.innerHTML = '<div style="color:var(--txt2)">جاري التحميل…</div>'; return; }
   box.innerHTML = reposCache.map(function (r) {
     var hidden = data.hidden.indexOf(r.name) !== -1;
+    var desc = (data.descs && data.descs[r.name]) || r.description || '';
     return '<div class="repo-row">' +
-      '<span class="name">' + r.name + '<small>' + (r.description || '') + '</small></span>' +
+      '<span class="name">' + r.name + '</span>' +
+      '<input class="repo-desc" data-repo="' + r.name + '" value="' + esc(desc) + '" placeholder="الوصف اللي هيظهر تحت الاسم في صفحة المشاريع…">' +
       '<label class="switch"><input type="checkbox" data-repo="' + r.name + '" ' + (hidden ? '' : 'checked') + '><span class="slider"></span></label>' +
       '<span class="lbl">' + (hidden ? 'مخفي' : 'ظاهر') + '</span></div>';
   }).join('');
+  box.querySelectorAll('.repo-desc').forEach(function (inp) {
+    inp.oninput = function () {
+      var name = inp.dataset.repo;
+      if (!data.descs) data.descs = {};
+      if (inp.value.trim()) data.descs[name] = inp.value;
+      else delete data.descs[name];
+      pushState();
+    };
+  });
   box.querySelectorAll('input[data-repo]').forEach(function (inp) {
     inp.onchange = function () {
       var name = inp.dataset.repo;
