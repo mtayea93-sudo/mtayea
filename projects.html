@@ -11,7 +11,7 @@
 <style>
   :root{
     --bg:#0b0a0c; --surface:rgba(255,255,255,.04); --line:rgba(255,255,255,.10);
-    --txt:#ffffff; --txt2:#bdbdbd; --accent:#ff008c; --r:24px;
+    --txt:#ffffff; --txt2:#bdbdbd; --accent:#d4af37; --r:24px;
   }
   *{margin:0;padding:0;box-sizing:border-box}
   body{background:var(--bg);color:var(--txt);font-family:'Tajawal','Hanken Grotesk',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
@@ -42,9 +42,9 @@
 
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:22px;padding:50px 0 120px}
   .card{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:28px;display:flex;flex-direction:column;gap:14px;transition:.4s cubic-bezier(.22,1,.36,1)}
-  .card:hover{transform:translateY(-8px);border-color:rgba(255,0,140,.45);box-shadow:0 24px 60px rgba(0,0,0,.5)}
+  .card:hover{transform:translateY(-8px);border-color:rgba(212,175,55,.45);box-shadow:0 24px 60px rgba(0,0,0,.5)}
   .card .top{display:flex;align-items:center;gap:12px}
-  .card .icon{width:46px;height:46px;min-width:46px;border-radius:14px;border:1px solid var(--line);display:grid;place-items:center;background:rgba(255,0,140,.08)}
+  .card .icon{width:46px;height:46px;min-width:46px;border-radius:14px;border:1px solid var(--line);display:grid;place-items:center;background:rgba(212,175,55,.08)}
   .card .icon svg{width:22px;height:22px;stroke:var(--accent)}
   .card h3{font-size:1.15rem;font-weight:800;font-family:'Hanken Grotesk','Tajawal',sans-serif;direction:ltr;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .card .desc{color:var(--txt2);font-size:.95rem;line-height:1.8;flex:1}
@@ -116,8 +116,8 @@
   }
 
   /* ملف التحكم: hidden + custom — لو مش موجود نشتغل من GitHub براحتنا */
-  var overrides = fetch('data/projects.json').then(function (r) { return r.ok ? r.json() : { hidden: [], custom: [] }; })
-    .catch(function () { return { hidden: [], custom: [] }; });
+  var overrides = fetch('data/projects.json').then(function (r) { return r.ok ? r.json() : { hidden: [], custom: [], descs: {} }; })
+    .catch(function () { return { hidden: [], custom: [], descs: {} }; });
 
   fetch('https://api.github.com/users/' + USER + '/repos?per_page=100&sort=pushed')
     .then(function (res) {
@@ -126,7 +126,7 @@
     })
     .then(function (repos) { return Promise.all([repos, overrides]); })
     .then(function (both) {
-      var repos = both[0], ov = both[1] || { hidden: [], custom: [] };
+      var repos = both[0], ov = both[1] || { hidden: [], custom: [], descs: {} };
       /* المشاريع المرفوعة: عندها Pages أو homepage — من غير الريبو الرئيسي — ومن غير المخفي من لوحة التحكم */
       var projects = repos.filter(function (r) {
         return r.name !== 'mtayea' && (r.has_pages || r.homepage) && (ov.hidden || []).indexOf(r.name) === -1;
@@ -150,7 +150,7 @@
           '    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg></span>' +
           '    <h3>' + esc(r.name) + '</h3>' +
           '  </div>' +
-          '  <div class="desc">' + esc(r.description || 'مشروع من تنفيذ Mohamed Tayea') + '</div>' +
+          '  <div class="desc">' + esc((ov.descs && ov.descs[r.name]) || r.description || 'مشروع من تنفيذ Mohamed Tayea') + '</div>' +
           '  <div class="meta"><span>آخر تحديث: ' + when + '</span>' + (r.has_pages ? '<span>GitHub Pages ✓</span>' : '') + '</div>' +
           '  <span class="open">افتح الموقع <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M17 17L7 7M7 7v8M7 7h8"/></svg></span>' +
           '</a>';
