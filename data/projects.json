@@ -2,5 +2,11 @@
   "hidden": [
     "Dilivary"
   ],
-  "custom": []
+  "custom": [
+    {
+      "name": "HTU",
+      "url": "https://htu.mtayea.com",
+      "desc": "مشروع الوحده العلاجية لأمراض الدم بمستشفى دكرنس العام"
+    }
+  ]
 }
