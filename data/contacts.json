@@ -1,19 +1,19 @@
 {
   "contacts": [
     {
-      "type": "phone",
-      "label": "محمد طايع",
-      "value": "01060651837"
-    },
-    {
-      "type": "whatsapp",
-      "label": "محمد طايع",
-      "value": "01060651837"
-    },
-    {
       "type": "facebook",
       "label": "mohamed tayea",
       "value": "https://www.facebook.com/share/1JmeK44dx1/"
+    },
+    {
+      "type": "whatsapp",
+      "label": "محمد",
+      "value": "+201060651837"
+    },
+    {
+      "type": "phone",
+      "label": "محمد طايع",
+      "value": "+201060651837"
     }
   ]
 }
