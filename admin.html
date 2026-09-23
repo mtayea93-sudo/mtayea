@@ -313,16 +313,28 @@ var SITES = [
   { id: 'mory',     name: 'موري',                    url: 'https://mory.mtayea.com/' },
   { id: 'mtai',     name: 'MT AI',                   url: 'https://mt-ai.mtayea.com/' }
 ];
-var CAPI = 'https://api.counterapi.dev/v1/mtayea-sites/';
+var BADGE = 'https://visitor-badge.laobi.icu/badge?page_id=mtayea.';
 
 function todayKey() {
   var d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
+function parseBadge(svg) {
+  var m = svg.match(/>(\d[\d,\.kM]*)<\/text>/g);
+  if (!m) return null;
+  var raw = m[0].replace(/[><\/text]/g, '');
+  var n = parseFloat(raw.replace(/,/g, ''));
+  return isNaN(n) ? null : n;
+}
+
 function fetchCount(name) {
-  return fetch(CAPI + encodeURIComponent(name)).then(function (r) {
-    return r.json().then(function (j) { return (j && typeof j.count === 'number') ? j.count : 0; });
+  var target = encodeURIComponent(BADGE + name);
+  return fetch('https://api.allorigins.win/get?url=' + target).then(function (r) {
+    return r.json().then(function (j) {
+      var n = parseBadge(j.contents || '');
+      return (n === null) ? null : n;
+    });
   }).catch(function () { return null; });
 }
 
