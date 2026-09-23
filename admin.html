@@ -62,6 +62,17 @@
   .repo-row{flex-wrap:wrap}
   .repo-desc{flex:1;min-width:200px;padding:9px 13px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.3);color:var(--txt2);font-family:'Tajawal',sans-serif;font-size:.85rem;outline:none;transition:border-color .3s}
   .repo-desc:focus{border-color:#d4af37;color:#fff}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+  .stat-card{background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:14px;padding:16px 18px;transition:border-color .3s}
+  .stat-card:hover{border-color:rgba(212,175,55,.5)}
+  .stat-card .s-name{font-weight:800;font-size:1rem;margin-bottom:2px;color:#fff}
+  .stat-card .s-url{font-size:.75rem;color:var(--txt2);direction:ltr;text-align:right;display:block;margin-bottom:12px}
+  .stat-nums{display:flex;gap:18px}
+  .stat-nums .num{flex:1}
+  .stat-nums .num b{display:block;font-size:1.5rem;font-weight:900;background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .stat-nums .num span{font-size:.72rem;color:var(--txt2)}
+  .stat-card .s-open{display:inline-block;margin-top:12px;font-size:.78rem;color:#d4af37;text-decoration:none}
+  .stat-card .s-open:hover{text-decoration:underline}
   .switch{position:relative;width:48px;height:26px;min-width:48px;cursor:pointer}
   .switch input{opacity:0;width:0;height:0}
   .slider{position:absolute;inset:0;border-radius:999px;background:rgba(255,255,255,.12);transition:.3s}
@@ -182,6 +193,19 @@
     </section>
 
     <section class="section">
+      <h3>📊 إحصائيات المواقع</h3>
+      <p class="hint">عدد مرات فتح كل موقع من مواقعك + زوّار اليوم — الأرقام لحظية من عدّاد التتبع اللي متركّب في كل موقع. وسط "الظهور في جوجل" بيحتاج ربط حسابك في Search Console (زرار التفعيل تحت).</p>
+      <div class="box" id="statsBox"><div style="color:var(--txt2)">جاري تحميل الإحصائيات…</div></div>
+      <div class="box" style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div>
+          <b>🔎 الظهور في بحث جوجل (مرات الظهور/النقرات)</b>
+          <div style="color:var(--txt2);font-size:.85rem;margin-top:4px">دي بيانات Google Search Console — بتتربط بحساب جوجل الشخصي، فمش بتجيش برمجي. دوس الزرار واضف المواقع من هناك.</div>
+        </div>
+        <a class="btn" href="https://search.google.com/search-console" target="_blank" rel="noopener" style="text-decoration:none">فتح Search Console</a>
+      </div>
+    </section>
+
+    <section class="section">
       <h3>الأمان (تغيير كلمة السر)</h3>
       <p class="hint">كلمة السر بتتحفظ على الموقع نفسه — محتاج توكن عشان تقدر تغيّرها.</p>
       <div class="box">
@@ -278,6 +302,57 @@ function loadData() {
       if (box) box.innerHTML = '<div style="color:var(--txt2)">⏳ حد الاستخدام المؤقت خلص — احفظ التوكن فوق ودوس تحديث، أو استنى ساعة.</div>';
     });
 }
+
+/* ====== إحصائيات المواقع ====== */
+var SITES = [
+  { id: 'mtayea',   name: 'موقعي الرسمي',            url: 'https://m-tayea.mtayea.com/' },
+  { id: 'htu',      name: 'بنك الدم HTU',            url: 'https://htu.mtayea.com/' },
+  { id: 'lab',      name: 'معمل صقر',                url: 'https://lab.mtayea.com/' },
+  { id: 'noor',     name: 'نور القرآن',              url: 'https://quran.mtayea.com/noor-quran' },
+  { id: 'sakr',     name: 'معمل صقر — sakr-lab',     url: 'https://sakr.mtayea.com/' },
+  { id: 'mory',     name: 'موري',                    url: 'https://mory.mtayea.com/' },
+  { id: 'mtai',     name: 'MT AI',                   url: 'https://mt-ai.mtayea.com/' }
+];
+var CAPI = 'https://api.counterapi.dev/v1/mtayea-sites/';
+
+function todayKey() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function fetchCount(name) {
+  return fetch(CAPI + encodeURIComponent(name)).then(function (r) {
+    return r.json().then(function (j) { return (j && typeof j.count === 'number') ? j.count : 0; });
+  }).catch(function () { return null; });
+}
+
+function escN(n) { return (n === null || n === undefined) ? '—' : n.toLocaleString('en'); }
+
+function renderStats() {
+  var box = $('statsBox');
+  box.innerHTML = '<div class="stats-grid">' + SITES.map(function (s) {
+    return '<div class="stat-card" id="stat-' + s.id + '">' +
+      '<div class="s-name">' + esc(s.name) + '</div>' +
+      '<span class="s-url">' + esc(s.url.replace(/^https?:\/\//, '')) + '</span>' +
+      '<div class="stat-nums">' +
+        '<div class="num"><b class="total">…</b><span>مرة اتفتح 🚀</span></div>' +
+        '<div class="num"><b class="today">…</b><span>زائر النهاردة 📅</span></div>' +
+      '</div>' +
+      '<a class="s-open" href="' + esc(s.url) + '" target="_blank" rel="noopener">افتح الموقع ↗</a>' +
+    '</div>';
+  }).join('') + '</div>';
+
+  SITES.forEach(function (s) {
+    var card = $('stat-' + s.id);
+    fetchCount(s.id).then(function (t) {
+      card.querySelector('.total').textContent = escN(t);
+    });
+    fetchCount(s.id + '@' + todayKey()).then(function (t) {
+      card.querySelector('.today').textContent = escN(t);
+    });
+  });
+}
+renderStats();
 
 function renderRepos() {
   var box = $('repoList');
