@@ -330,11 +330,15 @@ function parseBadge(svg) {
 
 function fetchCount(name) {
   var target = encodeURIComponent(BADGE + name);
-  return fetch('https://api.allorigins.win/get?url=' + target).then(function (r) {
-    return r.json().then(function (j) {
-      var n = parseBadge(j.contents || '');
-      return (n === null) ? null : n;
-    });
+  var proxies = [
+    'https://api.allorigins.win/get?url=' + target,
+    'https://api.codetabs.com/v1/proxy?quest=' + BADGE + name
+  ];
+  var attempt = fetch(proxies[0]).then(function (r) {
+    return r.json().then(function (j) { return parseBadge(j.contents || ''); });
+  });
+  return attempt.catch(function () {
+    return fetch(proxies[1]).then(function (r) { return r.text(); }).then(parseBadge);
   }).catch(function () { return null; });
 }
 
