@@ -1,5 +1,5 @@
 /*!
- * m_tayea Analytics — عدّاد زيارات مواقع محمد طايع
+ * m_tayea Analytics — عدّاد زيارات مواقع محمد طايع (visitor-badge)
  * التركيب: <script src="https://m-tayea.mtayea.com/signature/mtayea-track.js" data-site="اسم_الموقع" defer></script>
  */
 (function () {
@@ -8,7 +8,6 @@
     return s[s.length - 1];
   })();
   var site = (script && script.getAttribute('data-site')) || 'unknown';
-  var NS = 'mtayea-sites';
 
   // عد مرة واحدة بس في الجلسة لكل موقع
   try {
@@ -16,18 +15,11 @@
     sessionStorage.setItem('mtayea_hit_' + site, '1');
   } catch (e) { /* private mode */ }
 
-  var today = new Date();
-  var day = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+  var d = new Date();
+  var day = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  var base = 'https://visitor-badge.laobi.icu/badge?page_id=mtayea.';
 
-  function ping(name) {
-    var url = 'https://api.counterapi.dev/v1/' + NS + '/' + encodeURIComponent(name) + '/up';
-    if (navigator.sendBeacon) {
-      navigator.sendBeacon(url);
-    } else {
-      fetch(url, { method: 'POST', keepalive: true }).catch(function () {});
-    }
-  }
-
-  ping(site);              // الإجمالي
-  ping(site + '@' + day);  // زيارات اليوم
+  // تحميل الصورة = زيادة العدّاد (مش محتاج CORS)
+  new Image().src = base + site + '&left_text=%D8%B2%D9%8A%D8%A7%D8%B1%D8%A9';              // الإجمالي
+  new Image().src = base + site + '.' + day;                                                  // زيارات اليوم
 })();
