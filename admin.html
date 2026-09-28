@@ -70,6 +70,8 @@
   .stat-nums{display:flex;gap:18px}
   .stat-nums .num{flex:1}
   .stat-nums .num b{display:block;font-size:1.5rem;font-weight:900;background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .stat-nums .num img.badge-img{display:block;height:30px;margin:4px auto 0;border-radius:6px}
+  .stat-note{font-size:.68rem;color:var(--txt2);margin-top:10px;text-align:center}
   .stat-nums .num span{font-size:.72rem;color:var(--txt2)}
   .stat-card .s-open{display:inline-block;margin-top:12px;font-size:.78rem;color:#d4af37;text-decoration:none}
   .stat-card .s-open:hover{text-decoration:underline}
@@ -309,7 +311,7 @@ var SITES = [
   { id: 'htu',      name: 'بنك الدم HTU',            url: 'https://htu.mtayea.com/' },
   { id: 'lab',      name: 'معمل صقر',                url: 'https://lab.mtayea.com/' },
   { id: 'noor',     name: 'نور القرآن',              url: 'https://noor-quran.mtayea.com/' },
-  { id: 'sakr',     name: 'معمل صقر — sakr-lab',     url: 'https://sakr.mtayea.com/' },
+  { id: 'sakr',     name: 'معمل صقر — sakr-lab',     url: 'https://sakr.mtayea.com/', note: '⚠️ الدومين ده مربوط بحساب GitHub تاني (mtayea.github.io) — التتبع مش متاح عليه لحد ما ينقل لحسابك' },
   { id: 'mory',     name: 'موري',                    url: 'https://mory.mtayea.com/' },
   { id: 'mtai',     name: 'MT AI',                   url: 'https://mt-ai.mtayea.com/' }
 ];
@@ -344,6 +346,30 @@ function fetchCount(name) {
 
 function escN(n) { return (n === null || n === undefined) ? '—' : n.toLocaleString('en'); }
 
+function badgeImg(pageId, label, color) {
+  var img = new Image();
+  img.className = 'badge-img';
+  /* cache-buster عشان العداد يتحدث فورًا من غير ما الـ CDN يخدم نسخة قديمة */
+  img.src = BADGE + pageId + '&left_text=' + encodeURIComponent(label) + '&left_color=0f172a&right_color=' + color + '&_=' + Date.now();
+  img.alt = '…';
+  return img;
+}
+
+function setNum(card, cls, pageId, label, color) {
+  var b = card.querySelector('.' + cls);
+  var numBox = b.parentNode;
+  /* الصورة هي المصدر المضمون — بتتحمل دايمًا ومعاها الرقم */
+  var img = badgeImg(pageId, label, color);
+  numBox.appendChild(img);
+  /* لو البروكسي نجح، نعرض الرقم كبير ونشيل الصورة */
+  fetchCount(pageId).then(function (t) {
+    if (t !== null) { b.textContent = t.toLocaleString('en'); img.remove(); }
+    else { b.textContent = ''; b.style.display = 'none'; img.style.height = '34px'; }
+  }).catch(function () {
+    b.textContent = ''; b.style.display = 'none'; img.style.height = '34px';
+  });
+}
+
 function renderStats() {
   var box = $('statsBox');
   box.innerHTML = '<div class="stats-grid">' + SITES.map(function (s) {
@@ -354,18 +380,15 @@ function renderStats() {
         '<div class="num"><b class="total">…</b><span>مرة اتفتح 🚀</span></div>' +
         '<div class="num"><b class="today">…</b><span>زائر النهاردة 📅</span></div>' +
       '</div>' +
+      (s.note ? '<div class="stat-note">' + esc(s.note) + '</div>' : '') +
       '<a class="s-open" href="' + esc(s.url) + '" target="_blank" rel="noopener">افتح الموقع ↗</a>' +
     '</div>';
   }).join('') + '</div>';
 
   SITES.forEach(function (s) {
     var card = $('stat-' + s.id);
-    fetchCount(s.id).then(function (t) {
-      card.querySelector('.total').textContent = escN(t);
-    });
-    fetchCount(s.id + '@' + todayKey()).then(function (t) {
-      card.querySelector('.today').textContent = escN(t);
-    });
+    setNum(card, 'total', s.id, 'الإجمالي', 'd4af37');
+    setNum(card, 'today', s.id + '@' + todayKey(), 'النهاردة', '2e7d32');
   });
 }
 renderStats();
