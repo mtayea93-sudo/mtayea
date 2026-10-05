@@ -20,8 +20,6 @@
 
   var SITE_URL = 'https://m-tayea.mtayea.com';
   var HANDLE = '@m_tayea';
-
-  var css = [
     '#mtayea-signature{',
     '  position:fixed;bottom:18px;left:18px;z-index:99999;',
     '  font-family:"Segoe UI",Tahoma,Arial,sans-serif;',
@@ -41,12 +39,12 @@
     '}',
     '#mtayea-signature .mt-badge.mt-show{opacity:1;transform:translateY(0)}',
     '#mtayea-signature .mt-badge:hover{',
-    '  border-color:rgba(212,175,55,.6);',
-    '  box-shadow:0 8px 34px rgba(212,175,55,.35);',
+    '  border-color:rgba(255,0,140,.6);',
+    '  box-shadow:0 8px 34px rgba(255,0,140,.35);',
     '}',
     '#mtayea-signature .mt-dot{',
-    '  width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,#f9e296,#e6c455,#b8912f);',
-    '  box-shadow:0 0 10px #d4af37;flex-shrink:0;',
+    '  width:8px;height:8px;border-radius:50%;background:#ff008c;',
+    '  box-shadow:0 0 10px #ff008c;flex-shrink:0;',
     '}',
     '#mtayea-signature .mt-handle{color:#bdbdbd;font-weight:400}',
     '#mtayea-signature .mt-badge:hover .mt-handle{color:#fff}',
