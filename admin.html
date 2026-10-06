@@ -1,6 +1,40 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+<!-- 🔄 تحديث إجباري: أي جهاز يفتح نسخة قديمة بيتحدّث فوراً -->
+<script>
+(function () {
+  var V = 'mtayea-2026-10-07';
+  window.APP_VERSION = V;
+  function nukedReload() {
+    if (window.__nuking) return; window.__nuking = true;
+    if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(function (rs) { rs.forEach(function (r) { r.unregister(); }); });
+    if ('caches' in window) caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); });
+    setTimeout(function () { location.reload(); }, 300);
+  }
+  async function checkVersion() {
+    try {
+      var r = await fetch('version.json?ts=' + Date.now(), { cache: 'no-store' });
+      var j = await r.json();
+      if (j && j.v && j.v !== V) nukedReload();
+    } catch (e) {}
+  }
+  checkVersion();
+  setInterval(checkVersion, 45000);
+  if ('serviceWorker' in navigator) {
+    var hadController = !!navigator.serviceWorker.controller;
+    var refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (!hadController || refreshing) return;
+      refreshing = true; location.reload();
+    });
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+    setInterval(function () {
+      navigator.serviceWorker.getRegistration().then(function (reg) { if (reg) reg.update(); });
+    }, 45000);
+  }
+})();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>لوحة التحكم — m_tayea</title>
@@ -230,8 +264,9 @@
 <div class="toast" id="toast"></div>
 
 <script>
-/* ====== بيانات الدخول — الباسورد الافتراضي: mory-2026 (غيّره من قسم الأمان) ====== */
-var DEFAULT_HASH = '516db0610aa8590c9470562c993adace620aceb9ddcf5175f1181be27ff01f03';
+/* ====== بيانات الدخول — الباسورد الافتراضي: mhmd@1993 ====== */
+var DEFAULT_HASH = 'd51a5d028c2bea513b119bcbe08965a801228e3150eb499d44db5e971a9e97d4';
+var LEGACY_HASH = '516db0610aa8590c9470562c993adace620aceb9ddcf5175f1181be27ff01f03'; /* mory-2026 */
 var PW_HASH = DEFAULT_HASH;
 var USER = 'mtayea93-sudo', REPO = 'mtayea';
 var FILE = 'data/projects.json', CFILE = 'data/contacts.json', KFILE = 'data/config.json';
@@ -251,12 +286,19 @@ function sha(s) {
   });
 }
 function getToken() { return localStorage.getItem('mtayea_token') || ''; }
+/* توقيع جلسة اللوحة: تعديل mtayea_auth من الكونسول بينكشف */
+function _cyrb(s, seed) { var h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed; for (var i = 0; i < s.length; i++) { var c = s.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); } h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909); h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909); return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36); }
+function signAuth(hash) { var s = 'mtayea|' + hash; return _cyrb(s, 7) + _cyrb(s.split('').reverse().join(''), 13); }
+function authTampered() { try { var h = sessionStorage.getItem('mtayea_ahash'); return !h || sessionStorage.getItem('mtayea_asig') !== signAuth(h); } catch (e) { return true; } }
 
 /* ====== الدخول والخروج ====== */
 async function tryLogin() {
   var h = await sha($('pw').value);
-  if (h === PW_HASH) {
+  if (h === PW_HASH || (h === LEGACY_HASH && PW_HASH === DEFAULT_HASH)) {
+    if (h === LEGACY_HASH) { config.pw_hash = DEFAULT_HASH; PW_HASH = DEFAULT_HASH; h = DEFAULT_HASH; }
     sessionStorage.setItem('mtayea_auth', '1');
+    sessionStorage.setItem('mtayea_ahash', h);
+    sessionStorage.setItem('mtayea_asig', signAuth(h));
     openPanel();
   } else { $('err').textContent = 'كلمة السر غلط — حاول تاني'; }
 }
@@ -272,9 +314,12 @@ $('login').onclick = tryLogin;
 $('pw').addEventListener('keydown', function (e) { if (e.key === 'Enter') tryLogin(); });
 $('logout').onclick = function () {
   sessionStorage.removeItem('mtayea_auth');
+  sessionStorage.removeItem('mtayea_asig');
+  sessionStorage.removeItem('mtayea_ahash');
   location.reload();
 };
-if (sessionStorage.getItem('mtayea_auth') === '1') openPanel();
+if (sessionStorage.getItem('mtayea_auth') === '1' && !authTampered()) openPanel();
+else { sessionStorage.removeItem('mtayea_auth'); sessionStorage.removeItem('mtayea_asig'); sessionStorage.removeItem('mtayea_ahash'); }
 
 /* ====== تحميل وحفظ البيانات ====== */
 function loadData() {
