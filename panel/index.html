@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<title>لوحة التحكم الموحّدة — M_Tayea</title>
+<style>
+:root{--bg:#0b1220;--card:#121c31;--card2:#0f1830;--line:#1f2c49;--txt:#e8eefc;--mut:#8ea2c9;--acc:#3b82f6;--acc2:#22d3ee;--ok:#22c55e;--bad:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:radial-gradient(1200px 800px at 80% -10%,#16264d 0%,var(--bg) 55%);color:var(--txt);min-height:100vh}
+/* ===== بوابة الدخول ===== */
+#gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 800px at 80% -10%,#16264d 0%,var(--bg) 55%);z-index:50;padding:16px}
+#gate .box{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:40px 32px;max-width:380px;width:100%;text-align:center;box-shadow:0 30px 80px #0009}
+#gate .logo{font-size:44px;font-weight:800;letter-spacing:1px}
+#gate .logo b{color:var(--acc2)}
+#gate p{color:var(--mut);font-size:14px;margin:10px 0 26px}
+#gate input{width:100%;padding:13px 16px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font-size:16px;text-align:center;letter-spacing:1px}
+#gate input:focus{outline:none;border-color:var(--acc)}
+#gate button{width:100%;margin-top:14px;padding:13px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--acc),#1d4ed8);color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
+#gate .err{color:var(--bad);font-size:13px;min-height:18px;margin-top:10px}
+.shake{animation:sh .3s}@keyframes sh{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+/* ===== الهيكل ===== */
+header{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--line);background:#0d1626cc;backdrop-filter:blur(10px);position:sticky;top:0;z-index:20;flex-wrap:wrap}
+header .t{font-size:20px;font-weight:800}
+header .t span{color:var(--acc2)}
+header .sp{flex:1}
+.chip{background:var(--card2);border:1px solid var(--line);color:var(--txt);padding:8px 14px;border-radius:10px;cursor:pointer;font-family:inherit;font-size:13px}
+.chip:hover{border-color:var(--acc)}
+/* الشبكة */
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;padding:22px;max-width:1400px;margin:0 auto}
+.site{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:10px;transition:.2s;position:relative;overflow:hidden}
+.site:hover{transform:translateY(-3px);border-color:var(--acc)}
+.site::before{content:'';position:absolute;inset:0 0 auto 0;height:3px;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.site .row{display:flex;align-items:center;gap:12px}
+.site .ic{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:23px;background:#ffffff12}
+.site .nm{font-weight:800;font-size:16px}
+.site .ds{color:var(--mut);font-size:12px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--mut);margin-inline-start:auto;flex:none}
+.dot.on{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.dot.off{background:var(--bad)}
+.site .btns{display:flex;gap:8px;margin-top:4px}
+.site .btns button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:#ffffff08;color:var(--txt);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600}
+.site .btns button.pri{background:linear-gradient(135deg,var(--acc),#1d4ed8);border:0}
+.site .btns button:hover{filter:brightness(1.15)}
+.sso-tag{font-size:10px;color:var(--acc2);border:1px solid #22d3ee44;padding:2px 8px;border-radius:20px;width:fit-content}
+/* التبويبات */
+#tabs{display:none;flex-direction:column;height:calc(100vh - 63px)}
+#tabbar{display:flex;gap:6px;padding:8px 14px;background:#0d1626;border-bottom:1px solid var(--line);overflow-x:auto;align-items:center}
+.tab{padding:8px 14px;border-radius:10px;background:#ffffff08;border:1px solid var(--line);cursor:pointer;font-size:13px;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.tab.act{background:linear-gradient(135deg,var(--acc),#1d4ed8);border-color:transparent;font-weight:700}
+.tab .x{color:#fff9;cursor:pointer;font-weight:800}
+.tab .x:hover{color:#fff}
+#frameWrap{flex:1;position:relative}
+#frameWrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+/* إعدادات */
+#cfg{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:60;padding:16px}
+#cfg .box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px;max-width:420px;width:100%;max-height:80vh;overflow:auto}
+#cfg h3{margin-bottom:6px}
+#cfg .hint{color:var(--mut);font-size:12px;margin-bottom:16px}
+#cfg label{display:block;font-size:12px;color:var(--mut);margin:10px 0 4px}
+#cfg input{width:100%;padding:9px 12px;border-radius:9px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font-family:inherit}
+#cfg .row2{display:flex;gap:10px}
+#cfg .row2>div{flex:1}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="box" id="gateBox">
+    <div class="logo">M<b>_</b>TAYEA</div>
+    <p>لوحة التحكم الموحّدة — كل مواقعنا من مكان واحد 🔐</p>
+    <input id="gp" type="password" placeholder="كلمة المرور الرئيسية" autocomplete="current-password">
+    <button id="go">دخول اللوحة</button>
+    <div class="err" id="gerr"></div>
+  </div>
+</div>
+
+<header id="hdr" style="display:none">
+  <div class="t">لوحة التحكم <span>الموحّدة</span></div>
+  <span class="chip" id="homeBtn">🏠 المواقع</span>
+  <div class="sp"></div>
+  <span class="chip" id="cfgBtn">⚙️ بيانات الدخول</span>
+  <span class="chip" id="outBtn">🚪 خروج</span>
+</header>
+
+<div id="grid"></div>
+
+<div id="tabs">
+  <div id="tabbar"></div>
+  <div id="frameWrap"></div>
+</div>
+
+<div id="cfg">
+  <div class="box">
+    <h3>⚙️ بيانات الدخول التلقائي</h3>
+    <div class="hint">بتستخدم في الدخول التلقائي للمواقع اللي عليها شارة «دخول تلقائي». الباسورد الافتراضي موحّد لكل مواقعنا.</div>
+    <div id="cfgFields"></div>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button class="chip" style="flex:1;background:linear-gradient(135deg,var(--acc),#1d4ed8);border:0;font-weight:700" id="cfgSave">💾 حفظ</button>
+      <button class="chip" style="flex:1" id="cfgClose">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= الإعدادات ================= */
+var SITES=[
+ {id:'csl',   name:'CSL — نظام المعمل',        url:'https://csl.mtayea.com',      ic:'🧪', ds:'المعمل المتكامل — موزّع', sso:1, user:'mt'},
+ {id:'casa',  name:'MT CASA',                  url:'https://casa.mtayea.com',     ic:'🔬', ds:'تحليل السائل المنوي', sso:1, user:'1'},
+ {id:'mtlab', name:'MT LAB',                   url:'https://mtlab.mtayea.com',    ic:'⚗️', ds:'نظام معمل طايع', sso:1, user:'mt'},
+ {id:'mory',  name:'موري — العيادات',          url:'https://mory.mtayea.com',     ic:'🩺', ds:'حجوزات العيادات', sso:1, user:''},
+ {id:'htu',   name:'HTU — الحجوزات',           url:'https://htu.mtayea.com',      ic:'📅', ds:'وحدات + حجوزات', sso:0, user:''},
+ {id:'sakr',  name:'معمل د/ سكر',              url:'https://sakr.mtayea.com',     ic:'🥼', ds:'نظام المعامل', sso:0, user:''},
+ {id:'noor',  name:'نور القرآن',               url:'https://noor-quran.mtayea.com',ic:'📖', ds:'الإذاعة القرآنية', sso:0, user:''},
+ {id:'lab',   name:'معدل الاستهلاك',           url:'https://lab.mtayea.com',      ic:'📦', ds:'احتياجات المعمل', sso:0, user:''},
+ {id:'tcasa', name:'MT CASA — الفروع',         url:'https://tayeacasa.mtayea.com',ic:'🏪', ds:'فروع كازا', sso:0, user:''},
+ {id:'mtai',  name:'MT-AI',                    url:'https://mt-ai.mtayea.com',    ic:'🤖', ds:'الذكاء الاصطناعي', sso:0, user:''},
+ {id:'main',  name:'m-tayea — الرئيسية',       url:'https://m-tayea.mtayea.com',  ic:'🌐', ds:'الموقع الرئيسي', sso:0, user:''}
+];
+var HASH='d51a5d028c2bea513b119bcbe08965a801228e3150eb499d44db5e971a9e97d4';
+function getCreds(){try{return JSON.parse(localStorage.getItem('mtp_creds')||'{}')}catch(e){return{}}}
+function putCreds(c){localStorage.setItem('mtp_creds',JSON.stringify(c))}
+function credFor(s){var c=getCreds()[s.id]||{};return{user:c.user!==undefined?c.user:(s.user||''),pass:c.pass||'mhmd@1993'}}
+
+/* ================= البوابة ================= */
+var gate=document.getElementById('gate');
+async function sha(t){var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return Array.from(new Uint8Array(b),function(x){return x.toString(16).padStart(2,'0')}).join('')}
+async function tryGate(){
+  var v=document.getElementById('gp').value;
+  if(!v)return;
+  if(await sha(v)===HASH){sessionStorage.setItem('mtp_ok','1');enter();}
+  else{var b=document.getElementById('gateBox');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');document.getElementById('gerr').textContent='كلمة المرور غير صحيحة ❌';document.getElementById('gp').value='';}
+}
+document.getElementById('go').onclick=tryGate;
+document.getElementById('gp').addEventListener('keydown',function(e){if(e.key==='Enter')tryGate()});
+function enter(){
+  gate.style.display='none';
+  document.getElementById('hdr').style.display='flex';
+  renderGrid();pingAll();setInterval(pingAll,60000);
+  document.getElementById('gp').value='';
+}
+
+/* ================= الشبكة ================= */
+var grid=document.getElementById('grid');
+function renderGrid(){
+  grid.innerHTML='';
+  SITES.forEach(function(s){
+    var el=document.createElement('div');el.className='site';el.id='card-'+s.id;
+    el.innerHTML='<div class="row"><div class="ic">'+s.ic+'</div><div><div class="nm">'+s.name+'</div><div class="ds">'+s.ds+'</div></div><span class="dot" id="dot-'+s.id+'"></span></div>'
+      +(s.sso?'<span class="sso-tag">⚡ دخول تلقائي</span>':'')
+      +'<div class="btns"><button class="pri" data-in="'+s.id+'">فتح في اللوحة</button><button data-tab="'+s.id+'">تبويب جديد</button></div>';
+    grid.appendChild(el);
+  });
+  grid.querySelectorAll('[data-in]').forEach(function(b){b.onclick=function(){openTab(b.dataset.in)}});
+  grid.querySelectorAll('[data-tab]').forEach(function(b){b.onclick=function(){window.open(SITES.find(function(x){return x.id===b.dataset.tab}).url,'_blank')}});
+}
+/* حالة الموقع */
+function pingAll(){
+  SITES.forEach(function(s){
+    fetch(s.url+'/?_='+Date.now(),{mode:'no-cors',cache:'no-store'}).then(function(){dot(s.id,1)}).catch(function(){dot(s.id,0)});
+  });
+}
+function dot(id,on){var d=document.getElementById('dot-'+id);if(d)d.className='dot '+(on?'on':'off')}
+
+/* ================= التبويبات + الدخول التلقائي ================= */
+var open={};
+var tabsEl=document.getElementById('tabs'),tabbar=document.getElementById('tabbar'),frameWrap=document.getElementById('frameWrap');
+function openTab(id){
+  var s=SITES.find(function(x){return x.id===id});if(!s)return;
+  grid.style.display='none';tabsEl.style.display='flex';
+  if(!open[id]){
+    var tab=document.createElement('div');tab.className='tab';tab.id='tab-'+id;
+    tab.innerHTML=s.ic+' '+s.name+' <span class="x" data-x="'+id+'">✕</span>';
+    tab.onclick=function(e){if(e.target.dataset.x){closeTab(id);return;}activateTab(id)};
+    tabbar.appendChild(tab);
+    var f=document.createElement('iframe');f.id='fr-'+id;f.src=s.url;f.setAttribute('allow','clipboard-read; clipboard-write; camera; microphone');
+    f.style.display='none';frameWrap.appendChild(f);
+    open[id]={tab:tab,frame:f};
+    /* الدخول التلقائي: بعد تحميل الموقع نبعتله البيانات (ومرة احتياطية بعدين) */
+    var send=function(){
+      if(!f.contentWindow)return;
+      var c=credFor(s);
+      try{f.contentWindow.postMessage({mt:'sso',site:id,user:c.user,pass:c.pass},s.url)}catch(e){}
+    };
+    f.addEventListener('load',function(){send();setTimeout(send,1500);setTimeout(send,4000)});
+  }
+  activateTab(id);
+}
+function activateTab(id){
+  Object.keys(open).forEach(function(k){
+    open[k].frame.style.display=(k===id)?'block':'none';
+    open[k].tab.className='tab'+(k===id?' act':'');
+  });
+}
+function closeTab(id){
+  if(!open[id])return;
+  open[id].tab.remove();open[id].frame.remove();delete open[id];
+  var ks=Object.keys(open);
+  if(!ks.length){showGrid();return;}
+  if(!open[id])activateTab(ks[ks.length-1]);
+}
+function showGrid(){tabsEl.style.display='none';grid.style.display='grid'}
+document.getElementById('homeBtn').onclick=showGrid;
+
+/* ================= إعدادات البيانات ================= */
+var cfg=document.getElementById('cfg');
+document.getElementById('cfgBtn').onclick=function(){
+  var box=document.getElementById('cfgFields');box.innerHTML='';
+  SITES.filter(function(s){return s.sso}).forEach(function(s){
+    var c=credFor(s);
+    var d=document.createElement('div');
+    d.innerHTML='<label>'+s.ic+' '+s.name+'</label><div class="row2">'
+      +(s.user!==undefined&&s.user!==''?'<div><input data-u="'+s.id+'" placeholder="اسم المستخدم" value="'+c.user+'"></div>':'')
+      +'<div><input data-p="'+s.id+'" placeholder="كلمة المرور" value="'+c.pass+'"></div></div>';
+    box.appendChild(d);
+  });
+  cfg.style.display='flex';
+};
+document.getElementById('cfgClose').onclick=function(){cfg.style.display='none'};
+document.getElementById('cfgSave').onclick=function(){
+  var c=getCreds();
+  cfg.querySelectorAll('[data-u]').forEach(function(i){c[i.dataset.u]=c[i.dataset.u]||{};c[i.dataset.u].user=i.value});
+  cfg.querySelectorAll('[data-p]').forEach(function(i){c[i.dataset.p]=c[i.dataset.p]||{};c[i.dataset.p].pass=i.value});
+  putCreds(c);cfg.style.display='none';
+};
+
+/* ================= خروج ================= */
+document.getElementById('outBtn').onclick=function(){
+  sessionStorage.removeItem('mtp_ok');
+  Object.keys(open).forEach(closeTab);
+  document.getElementById('hdr').style.display='none';grid.style.display='none';
+  gate.style.display='flex';document.getElementById('gerr').textContent='';
+};
+
+/* دخول مباشر لو الجلسة شغالة */
+if(sessionStorage.getItem('mtp_ok')==='1')enter();
+</script>
+<script src="https://m-tayea.mtayea.com/signature/mtayea-signature.js"></script>
+</body>
+</html>
